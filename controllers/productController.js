@@ -4,12 +4,9 @@ const upload = require("./upload");
 // Create product
 exports.createProduct = async (req, res) => {
     const { name, description, price, category, stock } = req.body;
-    const image = req.files[0]
+    const image = (req.files[0]).location
     try {
-        let product = new Product({ name, description, price, category, stock });
-        if (image) {
-            upload(req, res);
-        }
+        let product = new Product({ name, description, price, category, stock , image});
         await product.save();
         res.json({
             status: true,
@@ -25,7 +22,7 @@ exports.createProduct = async (req, res) => {
 exports.getProducts = async (req, res) => {
     try {
         const products = await Product.find();
-        res.json(products);
+        res.json({ status: true, message: "Product list retrieved successfully", data: products });
     } catch (err) {
         console.error(err.message);
         res.status(500).send(err.message);
