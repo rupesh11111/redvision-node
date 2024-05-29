@@ -1,6 +1,5 @@
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
-const Product = require('../models/Product');
 
 // Place a new order from the user's cart
 exports.placeOrder = async (req, res) => {
@@ -9,7 +8,7 @@ exports.placeOrder = async (req, res) => {
         const cart = await Cart.findOne({ user: req.user.id }).populate('products.product');
 
         if (!cart) {
-            return res.status(404).json({ msg: 'Cart not found' });
+            return res.status(404).send({ status: false, message: 'Cart not found' });
         }
 
         // Calculate total price
@@ -34,10 +33,10 @@ exports.placeOrder = async (req, res) => {
         cart.products = [];
         await cart.save();
 
-        res.json(order);
+        return res.send({ status: true, message: 'Order Placed Successfully', data: order });
+
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).send({ status: false, message:err.message });
     }
 };
 
@@ -45,10 +44,9 @@ exports.placeOrder = async (req, res) => {
 exports.getUserOrders = async (req, res) => {
     try {
         const orders = await Order.find({ user: req.user.id }).populate('products.product');
-        res.json(orders);
+        return res.send({ status: true, message: 'User Orders Retrieved Successfully', data: orders });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).send({ status: false, message:err.message });
     }
 };
 
@@ -56,9 +54,8 @@ exports.getUserOrders = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find().populate('products.product').populate('user');
-        res.json(orders);
+        return res.send({ status: true, message: 'All Orders Retrieved Successfully', data: orders });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).send({ status: false, message:err.message });
     }
 };

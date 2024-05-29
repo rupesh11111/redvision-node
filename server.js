@@ -3,10 +3,12 @@ const connectDB = require('./config/database');
 const bodyParser = require('body-parser');
 const productRoutes = require('./routes/product');
 const orderRoutes = require('./routes/order');
+const cartRoutes = require('./routes/cart');
 const dotenv = require('dotenv');
 const multer = require('multer');
 const multerS3 = require('multer-s3');
 const { S3Client } = require('@aws-sdk/client-s3');
+const cors = require("cors");
 
 dotenv.config();
 
@@ -42,10 +44,12 @@ app.use(upload.any());
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(cors());
 
 // Routes
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/carts', cartRoutes);
 
 const PORT = process.env.PORT || 8000;
 

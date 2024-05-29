@@ -8,7 +8,7 @@ const auth = async (req, res, next) => {
   try {
     let token = req.header("Authorization");
     if (!token) {
-      return res.status(401).json({ msg: "No token, authorization denied" });
+      return res.status(401).json({ status: false, message: "No token, authorization denied" });
     }
 
     token = token.replace("Bearer ", "");
@@ -19,7 +19,7 @@ const auth = async (req, res, next) => {
 
     next();
   } catch (error) {
-    res.status(400).json({ msg: error.message });
+    return res.status(401).json({ status: false, message: error.message });
   }
 };
 

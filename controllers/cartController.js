@@ -1,17 +1,15 @@
 const Cart = require('../models/Cart');
-const Product = require('../models/Product');
 
 // Get the user's cart
 exports.getCart = async (req, res) => {
     try {
         const cart = await Cart.findOne({ user: req.user.id }).populate('products.product');
         if (!cart) {
-            return res.status(404).json({ msg: 'Cart not found' });
+            return res.status(404).send({ status: false, message: 'Cart not found' });
         }
-        res.json(cart);
+        return res.send({ status: true, message: 'Cart retrieved successfully', data: cart });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).send({ status: false, message: err.message });
     }
 };
 
@@ -35,31 +33,56 @@ exports.addToCart = async (req, res) => {
         }
 
         await cart.save();
-        res.json(cart);
+        return res.send({ status: true, message: 'product added to cart', data: cart });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).send({ status: false, message: err.message });
     }
 };
 
+exports.quantityUpdate = async (req, res) => {
+    const productId = req.params.id;
+    const {action} = req.body
+    try {
+        let cart = await Cart.findOne({ user: req.user.id });
+        if (!cart) {
+            return res.status(404).send({ status: false, message: 'Cart not found' });
+        }
+
+        cart.products = cart.products.map(p => {
+            if(p.product.toString() === productId ){
+                if(action == "increase") {
+                    p.quantity++;
+                } else if(action == "decrease") {
+                    p.quantity--;
+                } 
+            }
+            return p
+        });
+
+        await cart.save();
+
+        return res.send({ status: true, message: 'Product from cart removed successfully', data: cart });
+    } catch (err) {
+        res.status(500).send({ status: false, message: err.message });
+    }
+}
+
 // Remove a product from the cart
 exports.removeFromCart = async (req, res) => {
-    const { productId } = req.body;
+    const productId = req.params.id;
 
     try {
         let cart = await Cart.findOne({ user: req.user.id });
-
         if (!cart) {
-            return res.status(404).json({ msg: 'Cart not found' });
+            return res.status(404).send({ status: false, message: 'Cart not found' });
         }
 
         cart.products = cart.products.filter(p => p.product.toString() !== productId);
 
         await cart.save();
-        res.json(cart);
+        return res.send({ status: true, message: 'Product from cart removed successfully', data: cart });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).send({ status: false, message: err.message });
     }
 };
 
@@ -69,15 +92,14 @@ exports.clearCart = async (req, res) => {
         let cart = await Cart.findOne({ user: req.user.id });
 
         if (!cart) {
-            return res.status(404).json({ msg: 'Cart not found' });
+            return res.status(404).send({ status: false, message: 'Cart not found' });
         }
 
         cart.products = [];
 
         await cart.save();
-        res.json(cart);
+        return res.send({ status: true, message: 'Cart Cleared Successfully', data: cart });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server error');
+        res.status(500).send({ status: false, message: err.message });
     }
 };
